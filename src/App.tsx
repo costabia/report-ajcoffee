@@ -63,7 +63,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const to = new Date();
     const from = new Date();
-    from.setDate(from.getDate() - 90);
+    from.setDate(from.getDate() - 7);
     setDateFrom(toDateStr(from));
     setDateTo(toDateStr(to));
   }, []);
