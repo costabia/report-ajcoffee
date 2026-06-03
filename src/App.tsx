@@ -34,14 +34,6 @@ ChartJS.defaults.color = '#5a4a3a';
 ChartJS.defaults.font.family = "'IBM Plex Mono', monospace";
 ChartJS.defaults.font.size = 11;
 
-type StatData = {
-  price: string;
-  min: string;
-  max: string;
-  changeStr: string;
-  changeType: 'up' | 'down' | 'neutral';
-};
-
 type ChartData = {
   labels: string[];
   prices: number[];
@@ -57,8 +49,6 @@ const App: React.FC = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [lastUpdate, setLastUpdate] = useState('—');
 
-  const [coffeeStats, setCoffeeStats] = useState<StatData | null>(null);
-  const [dollarStats, setDollarStats] = useState<StatData | null>(null);
   const [coffeeChart, setCoffeeChart] = useState<ChartData | null>(null);
   const [dollarChart, setDollarChart] = useState<ChartData | null>(null);
 
@@ -115,20 +105,6 @@ const App: React.FC = () => {
       const dates = Object.keys(byDate).sort();
       const prices = dates.map(d => byDate[d]);
 
-      const last = prices[prices.length - 1];
-      const prev = prices[prices.length - 2] || last;
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      const chg = ((last - prev) / prev * 100);
-
-      setDollarStats({
-        price: `R$ ${last.toFixed(4)}`,
-        min: `R$ ${min.toFixed(4)}`,
-        max: `R$ ${max.toFixed(4)}`,
-        changeStr: `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}% hoje`,
-        changeType: chg > 0 ? 'up' : chg < 0 ? 'down' : 'neutral'
-      });
-
       const labels = dates.map(d => {
         const [y, m, dd] = d.split('-');
         return `${dd}/${m}/${y.slice(2)}`;
@@ -143,7 +119,7 @@ const App: React.FC = () => {
     }
   };
 
-const loadCoffee = async (fromStr: string, toStr: string) => {
+  const loadCoffee = async (fromStr: string, toStr: string) => {
     setLoadingCoffee(true);
     setErrorCoffee(false);
 
@@ -169,24 +145,9 @@ const loadCoffee = async (fromStr: string, toStr: string) => {
       });
       const prices = pairs.map(p => p.v);
 
-      const last = prices[prices.length - 1];
-      const prev = prices[prices.length - 2] || last;
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      const chg = ((last - prev) / prev * 100);
-
-      setCoffeeStats({
-        price: `${last.toFixed(2)}¢`,
-        min: `${min.toFixed(2)}¢`,
-        max: `${max.toFixed(2)}¢`,
-        changeStr: `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}% hoje`,
-        changeType: chg > 0 ? 'up' : chg < 0 ? 'down' : 'neutral'
-      });
-
       setCoffeeChart({ labels, prices });
     };
 
-    // Tentativa 1: Direta (Pode falhar por CORS)
     try {
       const res = await fetch(targetUrl);
       if (res.ok) {
@@ -199,7 +160,6 @@ const loadCoffee = async (fromStr: string, toStr: string) => {
       console.warn('Tentativa direta bloqueada por CORS. Tentando Proxy 1...');
     }
 
-    // Tentativa 2: Corsproxy.io (Excelente estabilidade)
     try {
       const proxyUrl1 = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
       const res = await fetch(proxyUrl1);
@@ -213,7 +173,6 @@ const loadCoffee = async (fromStr: string, toStr: string) => {
       console.warn('Proxy 1 falhou. Tentando Proxy 2 (AllOrigins)...');
     }
 
-    // Tentativa 3: AllOrigins (Fallback final)
     try {
       const proxyUrl2 = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
       const res = await fetch(proxyUrl2);
@@ -259,25 +218,20 @@ const loadCoffee = async (fromStr: string, toStr: string) => {
     }
   }, [dateFrom, dateTo]);
 
-  // Função para gerar o PDF
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     
     setIsGeneratingPDF(true);
     try {
-      // Tira um "print" do elemento referenciado
       const canvas = await html2canvas(reportRef.current, {
-        scale: 2, // Maior resolução
-        backgroundColor: '#0d0b08', // Mantém o fundo escuro do tema
+        scale: 2,
+        backgroundColor: '#0d0b08',
       });
       
       const imgData = canvas.toDataURL('image/png');
-      
-      // Cria o documento PDF em formato A4 retrato
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      // Calcula a altura proporcional da imagem capturada
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
@@ -290,7 +244,7 @@ const loadCoffee = async (fromStr: string, toStr: string) => {
     }
   };
 
-const generateChartConfig = (data: ChartData | null, color: string, labelText: string, prefix = '', suffix = '') => {
+  const generateChartConfig = (data: ChartData | null, color: string, labelText: string) => {
     if (!data) return null;
 
     return {
@@ -302,39 +256,35 @@ const generateChartConfig = (data: ChartData | null, color: string, labelText: s
           borderColor: color,
           borderWidth: 2,
           fill: true,
-          tension: 0.1, // Quase reto, como na sua imagem
-          pointRadius: 3, // Coloquei um ponto pequeno para ancorar o texto visualmente
+          tension: 0.1,
+          pointRadius: 3,
           pointBackgroundColor: color,
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        events: [], // Mantém estático para o PDF
+        events: [],
        
-        // Adiciona um espaço extra no topo para o número não cortar
         layout: {
           padding: { top: 25, right: 20 }
         },
        
         plugins: {
           legend: { display: false },
-          tooltip: { enabled: false }, // Tooltip desligado
+          tooltip: { enabled: false },
          
-          // CONFIGURAÇÃO DOS VALORES NA TELA
           datalabels: {
             display: true,
-            color: '#2e200c', // Cor do texto igual a do seu tema claro
-            align: 'top',     // Posiciona acima do ponto
-            offset: 6,        // Distância do ponto
+            color: '#2e200c',
+            align: 'top',
+            offset: 6,
             font: {
               family: "'IBM Plex Mono', monospace",
               size: 11,
-              weight: 'bold' as const // Deixa o número em destaque
+              weight: 700
             },
             formatter: (value: number) => {
-              // Formata para o padrão brasileiro (ex: 145,85)
-              // Se quiser colocar o R$ ou o ¢ direto no número, use: return `${prefix}${value.toFixed(2).replace('.', ',')}${suffix}`
               return value.toFixed(2).replace('.', ',');
             }
           }
@@ -357,8 +307,8 @@ const generateChartConfig = (data: ChartData | null, color: string, labelText: s
     };
   };
 
-  const coffeeConfig = generateChartConfig(coffeeChart, '#c8864a', 'KC Futures', '', '¢');
-  const dollarConfig = generateChartConfig(dollarChart, '#4ab8c8', 'USD/BRL', 'R$ ');
+  const coffeeConfig = generateChartConfig(coffeeChart, '#c8864a', 'KC Futures');
+  const dollarConfig = generateChartConfig(dollarChart, '#4ab8c8', 'USD/BRL');
 
   return (
     <>
@@ -395,7 +345,6 @@ const generateChartConfig = (data: ChartData | null, color: string, labelText: s
             ))}
           </div>
           
-          {/* Agrupamento de botões de ação */}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
             <button 
               className="btn-update" 
@@ -417,7 +366,6 @@ const generateChartConfig = (data: ChartData | null, color: string, labelText: s
           </div>
         </div>
 
-        {/* Div encapsulando o que vai pro PDF */}
         <div ref={reportRef} style={{ padding: '10px', background: 'var(--bg)' }}>
 
           <div className="charts-grid">
