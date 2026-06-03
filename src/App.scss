@@ -20,7 +20,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Montserrat', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -43,7 +43,7 @@ header {
   justify-content: space-between;
   gap: 2rem;
   flex-wrap: wrap;
-  background: #faf5ef;
+  background: white;
   border-bottom: 3px solid var(--bg);
 }
 
@@ -111,7 +111,7 @@ header {
 
 /* Filter panel */
 .filter-panel {
-  background: #faf5ef;
+  background: white;
   padding: 1.5rem 2rem;
   margin-bottom: 2rem;
   display: flex;
@@ -127,6 +127,7 @@ header {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   white-space: nowrap;
+  font-weight: 700;
 }
 
 .filter-group {
@@ -140,6 +141,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  
   
   label {
     font-size: 0.6rem;
@@ -161,6 +163,7 @@ input[type="date"] {
   color-scheme: dark;
   border-radius: 30px;
   border: none;
+  border: 1px solid var(--text);
 
   &:hover { border-color: var(--coffee); }
   &:focus { border-color: var(--coffee-light); }
@@ -178,10 +181,16 @@ input[type="date"] {
   flex-wrap: wrap;
 }
 
+.btn-group {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
 .quick-btn {
   background: white;
   color: var(--text-muted);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Montserrat', sans-serif;
   font-size: 0.65rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -201,7 +210,7 @@ input[type="date"] {
   background: var(--coffee);
   border: none;
   color: var(--bg);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Montserrat', sans-serif;
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -400,4 +409,12 @@ footer {
 @media (max-width: 700px) {
   .filter-panel { padding: 1rem; }
   .chart-card { padding: 0.4rem; }
+}
+
+@media (max-width: 500px) {
+  .btn-group {
+    display: flex;
+    justify-content: center;  
+    gap: 10px;
+  }
 }

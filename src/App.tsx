@@ -354,10 +354,10 @@ const handleDownloadPDF = async () => {
             ))}
           </div>
           
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+          <div className="btn-group">
             <button 
               className="btn-update" 
-              style={{ marginLeft: 0, background: 'white', color: 'var(--background)' }}
+              style={{ marginLeft: 0, background: 'var(--text-dim)', color: 'var(--bg)' }}
               onClick={handleDownloadPDF} 
               disabled={isGeneratingPDF || loadingCoffee || loadingDollar}
             >
@@ -381,7 +381,7 @@ const handleDownloadPDF = async () => {
             <div className="chart-card">
               <div className="chart-header">
                 <div>
-                  <div className="chart-title coffee">☕ NY Coffee C® Futures</div>
+                  <div className="chart-title coffee">NY Coffee C® Futures</div>
                   <div className="chart-meta">ICE · KC · Centavos por libra (¢/lb)</div>
                 </div>
                 <span className="chart-tag coffee">Arabica · ICE</span>
@@ -402,7 +402,7 @@ const handleDownloadPDF = async () => {
             <div className="chart-card">
               <div className="chart-header">
                 <div>
-                  <div className="chart-title dollar">💵 Dólar Americano — USD/BRL</div>
+                  <div className="chart-title dollar">Dólar Americano — USD/BRL</div>
                   <div className="chart-meta">Banco Central do Brasil · PTAX · Reais por dólar</div>
                 </div>
                 <span className="chart-tag dollar">PTAX · BCB</span>
