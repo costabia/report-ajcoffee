@@ -44,7 +44,7 @@ const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 const App: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [activeFilter, setActiveFilter] = useState(90);
+  const [activeFilter, setActiveFilter] = useState(7);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [lastUpdate, setLastUpdate] = useState('—');
@@ -223,10 +223,24 @@ const handleDownloadPDF = async () => {
     
     setIsGeneratingPDF(true);
     try {
+      // 1. Salva o estilo original do celular
+      const originalWidth = reportRef.current.style.width;
+      const originalMaxWidth = reportRef.current.style.maxWidth;
+      
+      // 2. Força temporariamente um tamanho de "desktop" para o print
+      reportRef.current.style.width = '800px';
+      reportRef.current.style.maxWidth = '800px';
+
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         backgroundColor: '#0d0b08',
+        // Garante que o renderizador considere a nova largura
+        windowWidth: 800, 
       });
+      
+      // 3. Devolve imediatamente o layout normal para o celular
+      reportRef.current.style.width = originalWidth;
+      reportRef.current.style.maxWidth = originalMaxWidth;
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -234,24 +248,18 @@ const handleDownloadPDF = async () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Define margens laterais e superior/inferior de 10mm
       const margin = 10;
       const maxPdfWidth = pageWidth - (margin * 2);
       const maxPdfHeight = pageHeight - (margin * 2);
       
-      // Calcula o tamanho inicial baseado na largura máxima permitida
       let pdfWidth = maxPdfWidth;
       let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      // A MÁGICA PARA O MOBILE:
-      // Se a altura calculada for maior que a altura da página,
-      // recalcula baseando-se na altura máxima permitida (faz o gráfico encolher para caber)
       if (pdfHeight > maxPdfHeight) {
         pdfHeight = maxPdfHeight;
         pdfWidth = (canvas.width * pdfHeight) / canvas.height;
       }
       
-      // Centraliza a imagem no meio da folha (eixo X)
       const xOffset = (pageWidth - pdfWidth) / 2;
       
       pdf.addImage(imgData, 'PNG', xOffset, margin, pdfWidth, pdfHeight);
