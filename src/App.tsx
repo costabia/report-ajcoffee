@@ -31,7 +31,7 @@ ChartJS.register(
 
 // Defaults do ChartJS para combinar com o layout
 ChartJS.defaults.color = '#5a4a3a';
-ChartJS.defaults.font.family = "'IBM Plex Mono', monospace";
+ChartJS.defaults.font.family = "'Montserrat', monospace";
 ChartJS.defaults.font.size = 11;
 
 type ChartData = {
@@ -289,7 +289,7 @@ const handleDownloadPDF = async () => {
             align: 'top',
             offset: 6,
             font: {
-              family: "'IBM Plex Mono', monospace",
+              family: "'Montserrat', monospace",
               size: 11,
               weight: 700
             },
