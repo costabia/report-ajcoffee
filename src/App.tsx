@@ -218,7 +218,7 @@ const App: React.FC = () => {
     }
   }, [dateFrom, dateTo]);
 
-  const handleDownloadPDF = async () => {
+const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     
     setIsGeneratingPDF(true);
@@ -231,10 +231,30 @@ const App: React.FC = () => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+      // Define margens laterais e superior/inferior de 10mm
+      const margin = 10;
+      const maxPdfWidth = pageWidth - (margin * 2);
+      const maxPdfHeight = pageHeight - (margin * 2);
+      
+      // Calcula o tamanho inicial baseado na largura máxima permitida
+      let pdfWidth = maxPdfWidth;
+      let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // A MÁGICA PARA O MOBILE:
+      // Se a altura calculada for maior que a altura da página,
+      // recalcula baseando-se na altura máxima permitida (faz o gráfico encolher para caber)
+      if (pdfHeight > maxPdfHeight) {
+        pdfHeight = maxPdfHeight;
+        pdfWidth = (canvas.width * pdfHeight) / canvas.height;
+      }
+      
+      // Centraliza a imagem no meio da folha (eixo X)
+      const xOffset = (pageWidth - pdfWidth) / 2;
+      
+      pdf.addImage(imgData, 'PNG', xOffset, margin, pdfWidth, pdfHeight);
       pdf.save(`relatorio-mercado-${dateFrom}-a-${dateTo}.pdf`);
     } catch (error) {
       console.error('Erro ao gerar o PDF:', error);
