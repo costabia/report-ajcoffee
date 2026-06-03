@@ -119,16 +119,23 @@ const App: React.FC = () => {
     }
   };
 
-  const loadCoffee = async (fromStr: string, toStr: string) => {
+const loadCoffee = async (fromStr: string, toStr: string) => {
     setLoadingCoffee(true);
     setErrorCoffee(false);
 
     const fromTs = Math.floor(new Date(fromStr).getTime() / 1000);
     const toTs = Math.floor(new Date(toStr + 'T23:59:59').getTime() / 1000);
     
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/KC%3DF?period1=${fromTs}&period2=${toTs}&interval=1d&includePrePost=false`;
+    // Agora apontamos para a SUA própria API na Vercel!
+    const targetUrl = `/api/coffee?period1=${fromTs}&period2=${toTs}`;
 
-    const parseAndSetCoffeeData = (json: any) => {
+    try {
+      const res = await fetch(targetUrl);
+      
+      if (!res.ok) throw new Error('Falha na API interna');
+      
+      const json = await res.json();
+      
       const result = json.chart?.result?.[0];
       if (!result) throw new Error('Estrutura de dados inválida');
 
@@ -146,45 +153,8 @@ const App: React.FC = () => {
       const prices = pairs.map(p => p.v);
 
       setCoffeeChart({ labels, prices });
-    };
-
-    try {
-      const res = await fetch(targetUrl);
-      if (res.ok) {
-        const json = await res.json();
-        parseAndSetCoffeeData(json);
-        setLoadingCoffee(false);
-        return;
-      }
-    } catch (e) {
-      console.warn('Tentativa direta bloqueada por CORS. Tentando Proxy 1...');
-    }
-
-    try {
-      const proxyUrl1 = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-      const res = await fetch(proxyUrl1);
-      if (res.ok) {
-        const json = await res.json();
-        parseAndSetCoffeeData(json);
-        setLoadingCoffee(false);
-        return;
-      }
-    } catch (e) {
-      console.warn('Proxy 1 falhou. Tentando Proxy 2 (AllOrigins)...');
-    }
-
-    try {
-      const proxyUrl2 = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-      const res = await fetch(proxyUrl2);
-      if (res.ok) {
-        const outerJson = await res.json();
-        const json = JSON.parse(outerJson.contents);
-        parseAndSetCoffeeData(json);
-        setLoadingCoffee(false);
-        return;
-      }
     } catch (err) {
-      console.error('Todos os métodos de busca falharam:', err);
+      console.error('Erro ao carregar café:', err);
       setErrorCoffee(true);
     } finally {
       setLoadingCoffee(false);
