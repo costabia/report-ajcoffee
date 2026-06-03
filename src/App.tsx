@@ -223,22 +223,24 @@ const handleDownloadPDF = async () => {
     
     setIsGeneratingPDF(true);
     try {
-      // 1. Salva o estilo original do celular
       const originalWidth = reportRef.current.style.width;
       const originalMaxWidth = reportRef.current.style.maxWidth;
       
-      // 2. Força temporariamente um tamanho de "desktop" para o print
+      // 1. Força a largura de PC
       reportRef.current.style.width = '800px';
       reportRef.current.style.maxWidth = '800px';
 
+      // 2. PAUSA MÁGICA: Dá 300ms para o Chart.js redesenhar o gráfico no novo tamanho
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // 3. Tira a foto
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         backgroundColor: '#0d0b08',
-        // Garante que o renderizador considere a nova largura
         windowWidth: 800, 
       });
       
-      // 3. Devolve imediatamente o layout normal para o celular
+      // 4. Devolve o tamanho normal do celular
       reportRef.current.style.width = originalWidth;
       reportRef.current.style.maxWidth = originalMaxWidth;
       
@@ -291,6 +293,7 @@ const handleDownloadPDF = async () => {
       },
       options: {
         responsive: true,
+        animation: false,
         maintainAspectRatio: false,
         events: [],
        
