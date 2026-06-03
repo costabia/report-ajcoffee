@@ -398,7 +398,6 @@ footer {
 }
 
 @media (max-width: 700px) {
-  header, .main, footer { padding-right: 1.2rem; }
   .filter-panel { padding: 1rem; }
-  .chart-card { padding: 1.2rem; }
+  .chart-card { padding: 0.4rem; }
 }

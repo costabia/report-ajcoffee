@@ -226,21 +226,28 @@ const handleDownloadPDF = async () => {
       const originalWidth = reportRef.current.style.width;
       const originalMaxWidth = reportRef.current.style.maxWidth;
       
-      // 1. Força a largura de PC
-      reportRef.current.style.width = '800px';
-      reportRef.current.style.maxWidth = '800px';
+      // 1. Lê a largura atual do dispositivo
+      const clientWidth = reportRef.current.offsetWidth;
+      
+      // 2. Se for celular, estica para 800. Se for iPad/PC, mantém o tamanho real.
+      const targetWidth = clientWidth < 800 ? 800 : clientWidth;
+      
+      reportRef.current.style.width = `${targetWidth}px`;
+      reportRef.current.style.maxWidth = `${targetWidth}px`;
 
-      // 2. PAUSA MÁGICA: Dá 300ms para o Chart.js redesenhar o gráfico no novo tamanho
+      // Pausa para o Chart.js redesenhar caso o tamanho tenha mudado
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // 3. Tira a foto
+      // 3. Tira a foto com proteção contra scroll
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         backgroundColor: '#0d0b08',
-        windowWidth: 800, 
+        windowWidth: targetWidth,
+        scrollX: 0,
+        scrollY: -window.scrollY // Previne cortes quando o usuário rola a página para baixo
       });
       
-      // 4. Devolve o tamanho normal do celular
+      // Devolve o tamanho original
       reportRef.current.style.width = originalWidth;
       reportRef.current.style.maxWidth = originalMaxWidth;
       
@@ -257,6 +264,7 @@ const handleDownloadPDF = async () => {
       let pdfWidth = maxPdfWidth;
       let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
+      // Ajusta para caber na folha A4
       if (pdfHeight > maxPdfHeight) {
         pdfHeight = maxPdfHeight;
         pdfWidth = (canvas.width * pdfHeight) / canvas.height;
